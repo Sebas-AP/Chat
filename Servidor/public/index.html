@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="shortcut icon" href="src/img/halconchat.png" type="image/x-icon">
+    <title>Chat Info</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body class="container">
+    
+    <div >
+        <div id="login-screen">
+            <div id="login-box">
+                <h2>Ingresa tu Nombre de Usuario</h2>
+                <input id="username-input" autocomplete="off" placeholder="Tu Nombre" required />
+                <button id="start-button">Iniciar Chat</button>
+            </div>
+    </div>
+
+    <div id="chat-screen">
+        <div id="chat-container">
+            <ul id="messages"></ul>
+            <form id="form" action="">
+                <div id="username-display"></div> 
+                <input id="input" autocomplete="off" placeholder="Escribe tu mensaje..." />
+                <button type="submit">Enviar</button>
+            </form>
+        </div>
+    </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script> 
+    
+    <script>
+        var socket = io();
+
+        // Referencias a los elementos del DOM
+        var loginScreen = document.getElementById('login-screen');
+        var chatContainer = document.getElementById('chat-container');
+        var usernameInput = document.getElementById('username-input');
+        var startButton = document.getElementById('start-button');
+        var usernameDisplay = document.getElementById('username-display');
+        var form = document.getElementById('form');
+        var input = document.getElementById('input');
+        var messages = document.getElementById('messages');
+        
+        let username = ''; // Variable para almacenar el nombre del usuario
+        
+        //inicio
+        startButton.addEventListener('click', function() {
+            const enteredUsername = usernameInput.value.trim();
+            if (enteredUsername) {
+                username = enteredUsername;
+                
+                // Oculta la pantalla de inicio
+                loginScreen.style.display = 'none';
+                // Muestra el contenedor del chat
+                chatContainer.style.display = 'block'; 
+                
+                // Muestra el nombre del usuario junto a la barra de texto
+                usernameDisplay.textContent = username; 
+                
+                input.focus();
+            } else {
+                alert('Por favor, ingresa un nombre de usuario.');
+            }
+        });
+
+
+        // chat
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (input.value) {
+                // 1. Antepone el nombre de usuario al mensaje
+                const fullMessage = username + ": " + input.value;
+                
+                // 2. Envía el mensaje completo al servidor
+                socket.emit('chat message', fullMessage);
+                input.value = '';
+            }
+        });
+
+        // recibir mensajes
+        socket.on('chat message', function(msg) {
+            var item = document.createElement('li');
+            item.textContent = msg;
+            messages.appendChild(item);
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+    </script>
+</body>
+</html>
